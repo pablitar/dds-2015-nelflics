@@ -10,6 +10,7 @@ class ContenidoRecomendadoSuite {
 	
 	var Contenido destacado
 	var List<Contenido> todoElContenido = newArrayList
+	var Pais pais
 	
 	@Before
 	def void fixtureDeContenido() {
@@ -24,20 +25,22 @@ class ContenidoRecomendadoSuite {
 			.newRecital
 			.build
 		)
+		
+		pais = new Pais(todoElContenido)
 	}
 	
 	
 	@Test
 	def void unUsuarioQueNoVioNadaLeRecomiendaLoDestacado() {
-		val usuario = new Usuario(new Normal)
-		val List<Contenido> contenido = usuario.contenidoRecomendado(todoElContenido, newArrayList(usuario))
+		val usuario = new Usuario(new Normal, pais)
+		val List<Contenido> contenido = usuario.contenidoRecomendado()
 		
 		assertArrayEquals(newArrayList(destacado).toArray, contenido.toArray)
 	}
 
 	@Test
 	def void unUsuarioQueVioUnaSerieEnteraNoLeApareceEnRecomendaciones() {
-		fail()
+		fail("Not implemented")
 	}
 
 }

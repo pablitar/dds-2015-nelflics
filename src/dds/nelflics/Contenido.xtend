@@ -2,9 +2,11 @@ package dds.nelflics
 
 import java.util.Collection
 import java.util.Set
-import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.AccessorType
+import org.eclipse.xtend.lib.annotations.Accessors
+
 import static extension dds.nelflics.NelflicsIterableExtensions.*
+import static extension org.eclipse.xtend.lib.annotations.AccessorType.*
 
 abstract class Contenido {
 
@@ -14,12 +16,19 @@ abstract class Contenido {
 	@Accessors(AccessorType.PROTECTED_GETTER)
 	Set<ContenidoVisto> visualizaciones = newHashSet()
 
+	@Accessors(AccessorType.PUBLIC_GETTER)
+	Set<Interprete> interpretes = newHashSet()
+
 	@Accessors
 	Boolean estaDestacado = false
-
-	def esPremium() {
-		false
-	}
+	
+	@Accessors
+	/*
+	 * Requerimiento: Poner como premium o no un contenido
+	 * unContenido.esPremium = true
+	 * unContenido.esPremium = false
+	 */
+	Boolean esPremium = false
 
 	def esInfantil() {
 		generos.contains(Genero.INFANTIL)
@@ -43,34 +52,45 @@ abstract class Contenido {
 		visualizaciones.average[it.calificacion]
 	}
 
-	def Double relevancia(Iterable<Usuario> todosLosUsuarios)
+	def Double relevancia()
+
+	//Esto es quizás una decisión cuestionable, ya que implica mezclar modelo y metamodelo
+	//Por ello, se abstrae en un método en particular, para poder cambiarlo luego
+	def String tipo() {
+		this.class.simpleName
+	}
 
 	def coincideAlgunGenero(Collection<String> generos) {
-		this.generos.exists[generos.contains(it)]
+		generos.exists[this.esDeGenero(it)]
+	}
+
+	def esDeGenero(String genero) {
+		this.generos.contains(genero)
+	}
+
+	def participaInterprete(Interprete interprete) {
+		this.interpretes.contains(interprete)
+	}
+
+	def agregarInterprete(Interprete interprete) {
+		interpretes.add(interprete)
+		interprete.agregarObra(this)
 	}
 
 }
 
 class Recital extends Contenido {
 
-	@Accessors(AccessorType.PUBLIC_GETTER)
-	Set<Artista> artistas = newHashSet()
-
 	override esRecomendadoPorTipoPara(Usuario usuario) {
 		usuario.contenidosVistos.exists[it.contenido != this && it.contenido.coincideArtista(this)]
 	}
 
 	override coincideArtista(Recital recital) {
-		recital.artistas.exists[this.artistas.contains(it)]
+		this.interpretes.exists[recital.participaInterprete(it)]
 	}
 
-	def agregarArtista(Artista a) {
-		artistas.add(a)
-		a.agregarRecital(this)
-	}
-
-	override relevancia(Iterable<Usuario> todosLosUsuarios) {
-		artistas.average([it.calificacion])
+	override relevancia() {
+		interpretes.average([it.calificacion])
 	}
 
 }
@@ -81,14 +101,14 @@ class Pelicula extends Contenido {
 		usuario.vioAlgunGenero(this.generos)
 	}
 
-	override relevancia(Iterable<Usuario> todosLosUsuarios) {
-		(visualizaciones.size.doubleValue / todosLosUsuarios.size) * visualizaciones.average[it.calificacion]
+	override relevancia() {
+		(visualizaciones.size.doubleValue / RepoUsuarios.instance.cantidad) * visualizaciones.average[it.calificacion]
 	}
 
 }
 
 class Serie extends Contenido {
-	
+
 	@Accessors
 	Integer cantidadCapitulos
 
@@ -96,12 +116,12 @@ class Serie extends Contenido {
 		usuario.empezoPeroNoTermino(this)
 	}
 
-	override relevancia(Iterable<Usuario> todosLosUsuarios) {
+	override relevancia() {
 		visualizaciones.average[it.calificacion] * cantidadVisualizacionesEnTotalidad
 	}
-	
+
 	def cantidadVisualizacionesEnTotalidad() {
 		visualizaciones.count[it.esSerieVistaEnTotalidad(this)]
 	}
-	
+
 }

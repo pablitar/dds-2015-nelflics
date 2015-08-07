@@ -1,6 +1,5 @@
 package dds.nelflics
 
-import dds.nelflics.external.SistemaFacturacion
 import java.util.Collection
 import java.util.List
 import org.eclipse.xtend.lib.annotations.Accessors
@@ -14,26 +13,36 @@ class Usuario {
 
 	@Accessors
 	List<Filtro> filtrosConfigurados = newArrayList()
+	
+	@Accessors
+	Pais pais
 
-	/* Quizás en lugar de recibir una lista, uno querría recibir un repositorio, dado que
-	 * eso permitiría que no toda la lista esté en memoria.
-	 * Lo mismo sucede con el listado de los usuarios, que podría ser también la cantidad de usuarios
-	 * */
-	def List<Contenido> contenidoRecomendado(List<Contenido> todoElContenido, List<Usuario> todosLosUsuarios) {
+	/*
+	 * Requerimiento: Contenido recomendado para un usuario
+	 * unUsuario.contenidoRecomendado()
+	 */
+	def List<Contenido> contenidoRecomendado() {
 		filtrarYOrdenarPorRecomendados(
 			filtrarPorFiltros(
-				categoria.contenidoPermitido(todoElContenido)
-			),
-			todosLosUsuarios
+				categoria.contenidoPermitido(pais.contenido)
+			)
 		)
+	}
+	
+	def agregarFiltro(Filtro filtro) {
+		this.filtrosConfigurados.add(filtro)
+	}
+	
+	def quitarFiltro(Filtro filtro) {
+		this.filtrosConfigurados.remove(filtro)
 	}
 
 	def filtrarPorFiltros(Iterable<Contenido> contenidos) {
 		contenidos.filter[c|filtrosConfigurados.forall[it.esPasadoPor(c)]]
 	}
 
-	def filtrarYOrdenarPorRecomendados(Iterable<Contenido> contenidos, Iterable<Usuario> usuarios) {
-		contenidos.filter[it.esRecomendadoPara(this)].sortWith(Relevancia.comparator(usuarios))
+	def filtrarYOrdenarPorRecomendados(Iterable<Contenido> contenidos) {
+		contenidos.filter[it.esRecomendadoPara(this)].sortWith(Relevancia.comparator)
 	}
 
 	def vioAlgunGenero(Collection<String> generos) {
@@ -45,18 +54,28 @@ class Usuario {
 	}
 
 	//Quizás podría ser un observer
-	def cambiarDeCategoria(Categoria categoria, SistemaFacturacion sistema) {
-		this.categoria.usuarioCambiaA(this, categoria, sistema)
+	/*
+	 * Requerimiento: Cambiar de categoría de usuario
+	 * unUsuario.cambiarDeCategoria(unaCategoria)
+	 */
+	def cambiarDeCategoria(Categoria categoria) {
+		this.categoria.usuarioCambiaA(this, categoria)
 		this.categoria = categoria
 	}
 
 	//Interfaz externa, para volver a categoría normal cuando no se registra el pago
+	/*
+	 * Requerimiento: Volver a categoría normal un usuario porque falló su pago.
+	 * Dado que el sistema de facturación trata con usuarios (porque la interfaz está definida así),
+	 * puedo asumir que le puede enviar este mensaje.
+	 */
 	def volverACategoriaNormal() {
 		this.categoria = new Normal()
 	}
 
-	new(Categoria categoria) {
+	new(Categoria categoria, Pais pais) {
 		this.categoria = categoria
+		this.pais = pais
 	}
 
 }

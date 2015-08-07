@@ -5,31 +5,14 @@ import java.util.Comparator
 class Relevancia {
 
 	//La interfaz de comparator es muy confusa, pero permite ordenar usando sortWith
-	static def Comparator<Contenido> comparator(Iterable<Usuario> todosLosUsuarios) {
-		[ Contenido a, Contenido b |
-			//Si se devuelve un número negativo, se asume que a está delante de b 
-			if (a.estaDestacado) {
-
-				//En caso que sea destacado, comparo por orden comun si b es destacado, sino automáticamente a va antes que b
-				if(b.estaDestacado) compararPorOrdenComun(a, b, todosLosUsuarios) else -1
-			} else {
-
-				//En caso que no sea destacado, si b está destacado automáticamente va antes que a. Sino, comparo por orden común
-				if(b.estaDestacado) 1 else compararPorOrdenComun(a, b, todosLosUsuarios)
-			}
-		]
-	}
-
-	private static def int compararPorOrdenComun(Contenido a, Contenido b, Iterable<Usuario> todosLosUsuarios) {
-
-		//El orden común, ante idéntica relevancia, prioriza a los premium
-		if (a.relevancia(todosLosUsuarios).equals(b.relevancia(todosLosUsuarios)))
-			if (a.esPremium)
-				if(b.esPremium) 0 else -1
-			else if(b.esPremium) 1 else 0
-		else
-			//Sacadas todas las excepciones, se compara la relevancia.
-			b.relevancia(todosLosUsuarios).compareTo(a.relevancia(todosLosUsuarios))
-	}
+	public static val Comparator<Contenido> comparator = [ Contenido a, Contenido b |
+		//Primero comparo por destaque. False comparado con True da 1 => En caso que a sea destacado y b no lo sea, entonces el resultado será que a va delante de b. 
+		var result = b.estaDestacado.compareTo(a.estaDestacado)
+		//En caso que sean iguales, comparo por relevancia. En los números, el menor número va delante del mayor. Como quiero que a más relevancia vaya más adelante, debo invertirlo.
+		if(result == 0) result = b.relevancia.compareTo(a.relevancia)
+		//En caso que sean iguales, comparo por premium. Es un caso similar al destaque. 
+		if(result == 0) result = b.esPremium.compareTo(a.esPremium)
+		return result
+	]
 
 }

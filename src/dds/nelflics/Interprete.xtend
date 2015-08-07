@@ -5,18 +5,22 @@ import org.eclipse.xtend.lib.annotations.AccessorType
 import org.eclipse.xtend.lib.annotations.Accessors
 
 import static extension dds.nelflics.NelflicsIterableExtensions.*
+import static extension org.eclipse.xtend.lib.annotations.AccessorType.*
 
-class Artista {
+class Interprete {
 	@Accessors(AccessorType.PUBLIC_GETTER)
-	Set<Recital> recitales = newHashSet()
+	Set<Contenido> obras = newHashSet()
 	
-	def agregarRecital(Recital recital) {
-		recitales.add(recital)
+	@Accessors
+	String nombre
+	
+	def agregarObra(Contenido obra) {
+		obras.add(obra)
 	}
 	
 	def Double calificacion() {
 		//Se asume que la calificación de un artista es el promedio de los recitales en los que participó
-		recitales.average([it.calificacionPromedio])
+		obras.average([it.calificacionPromedio])
 	}
 	
 }

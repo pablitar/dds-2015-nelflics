@@ -1,12 +1,12 @@
 package dds.nelflics
 
+import dds.nelflics.external.SistemasExternos
 import java.util.List
-import dds.nelflics.external.SistemaFacturacion
 
 interface Categoria {	
 	def Iterable<Contenido> contenidoPermitido(List<Contenido> contenidos)
 	
-	def void usuarioCambiaA(Usuario usuario, Categoria categoria, SistemaFacturacion facturacion)
+	def void usuarioCambiaA(Usuario usuario, Categoria categoria)
 	
 }
 
@@ -16,11 +16,11 @@ class Premium implements Categoria {
 		contenidos
 	}
 	
-	def dispatch void usuarioCambiaA(Usuario usuario, Premium categoria, SistemaFacturacion facturacion) {
+	def dispatch void usuarioCambiaA(Usuario usuario, Premium categoria) {
 		//NADA
 	}
-	def dispatch void usuarioCambiaA(Usuario usuario, Normal categoria, SistemaFacturacion facturacion) {
-		facturacion.reintegraPremiumA(usuario)
+	def dispatch void usuarioCambiaA(Usuario usuario, Normal categoria) {
+		SistemasExternos.sistemaFacturacion.reintegraPremiumA(usuario)
 	}
 	
 }
@@ -38,11 +38,11 @@ class Normal implements Categoria {
 		contenidos.filter[!it.esPremium]
 	}
 	
-	def dispatch void usuarioCambiaA(Usuario usuario, Premium categoria, SistemaFacturacion facturacion) {
-		facturacion.facturaPremiumA(usuario)
+	def dispatch void usuarioCambiaA(Usuario usuario, Premium categoria) {
+		SistemasExternos.sistemaFacturacion.facturaPremiumA(usuario)
 	}
 	
-	def dispatch void usuarioCambiaA(Usuario usuario, Normal categoria, SistemaFacturacion facturacion) {
+	def dispatch void usuarioCambiaA(Usuario usuario, Normal categoria) {
 		//NADA
 	}
 	
